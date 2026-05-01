@@ -1,0 +1,12 @@
+services:
+  db:
+    image: mysql:8
+    env_file:
+      - br-api/.env.local
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
