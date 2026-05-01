@@ -1,6 +1,6 @@
 # Quote Schedule System
 
-REST API built with Go + Gin + GORM + MySQL, with a React/MUI frontend.
+REST API built with Go + Gin + GORM + MySQL, with a Next.js frontend.
 
 ## Requirements
 
@@ -28,7 +28,7 @@ cd br-api
 go run ./cmd/api
 ```
 
-API will be available at `http://localhost:8080`.
+API will be available at `http://localhost:{PORT}` (default `8080`, configurable via `.env.local`).
 
 ## Health check
 
