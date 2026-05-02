@@ -12,6 +12,7 @@ type JobStatus string
 const (
 	JobStatusScheduled  JobStatus = "scheduled"
 	JobStatusCompleted  JobStatus = "completed"
+	JobStatusCancelled  JobStatus = "cancelled"
 )
 
 type NotificationType string
