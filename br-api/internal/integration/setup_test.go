@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/melfish/br-api/internal/db"
 	"github.com/melfish/br-api/internal/models"
 	"github.com/melfish/br-api/internal/store"
@@ -56,9 +57,9 @@ func setupDB(t *testing.T) *testEnv {
 
 func seedTechnicianAndManager(t *testing.T, env *testEnv) (models.Technician, models.Manager) {
 	t.Helper()
-	tech := models.Technician{Name: "Test Tech", Email: "tech@test.com"}
+	tech := models.Technician{Name: "Test Tech", Email: uuid.New().String() + "@test.com"}
 	require.NoError(t, env.db.Create(&tech).Error)
-	mgr := models.Manager{Name: "Test Manager", Email: "manager@test.com"}
+	mgr := models.Manager{Name: "Test Manager", Email: uuid.New().String() + "@test.com"}
 	require.NoError(t, env.db.Create(&mgr).Error)
 	return tech, mgr
 }

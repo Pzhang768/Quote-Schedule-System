@@ -68,6 +68,7 @@ func TestAssignJob_Conflict_Integration(t *testing.T) {
 }
 
 func TestAssignJob_ConcurrentConflict_Integration(t *testing.T) {
+	// Two goroutines race to book the same technician. SELECT FOR UPDATE ensures only one wins.
 	env := setupDB(t)
 	tech, mgr := seedTechnicianAndManager(t, env)
 	quote1 := seedQuote(t, env)

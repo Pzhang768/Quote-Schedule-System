@@ -7,6 +7,7 @@ import (
 	"github.com/melfish/br-api/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 func TestTechnicianStore_ListAndGetByID(t *testing.T) {
@@ -23,6 +24,12 @@ func TestTechnicianStore_ListAndGetByID(t *testing.T) {
 	got, err := env.technicians.GetByID(t1.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "Tom", got.Name)
+}
+
+func TestTechnicianStore_GetByID_NotFound(t *testing.T) {
+	env := setupDB(t)
+	_, err := env.technicians.GetByID(uuid.New())
+	assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 }
 
 func TestTechnicianStore_List_Pagination(t *testing.T) {

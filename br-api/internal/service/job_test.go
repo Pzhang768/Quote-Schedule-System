@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"errors"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/melfish/br-api/internal/mocks"
 	"github.com/melfish/br-api/internal/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	tmock "github.com/stretchr/testify/mock"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -21,9 +23,9 @@ import (
 func stubDB(t *testing.T) (*gorm.DB, sqlmock.Sqlmock) {
 	t.Helper()
 	db, mock, err := sqlmock.New()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	gormDB, err := gorm.Open(mysql.New(mysql.Config{Conn: db, SkipInitializeWithVersion: true}), &gorm.Config{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return gormDB, mock
 }
 
@@ -97,6 +99,57 @@ func TestAssignJob(t *testing.T) {
 		_, err := env.svc.AssignJob(validInput)
 		assert.ErrorIs(t, err, ErrConflict)
 	})
+
+	t.Run("returns error when quote lookup fails", func(t *testing.T) {
+		env := setupJobTest(t, noTx)
+		env.quotes.On("GetByID", quoteID).Return((*models.Quote)(nil), errors.New("db error"))
+
+		_, err := env.svc.AssignJob(validInput)
+		assert.ErrorContains(t, err, "db error")
+	})
+
+	t.Run("returns error when conflict check fails", func(t *testing.T) {
+		db, mock := stubDB(t)
+		mock.ExpectBegin()
+		mock.ExpectRollback()
+		env := setupJobTest(t, db.Begin)
+
+		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
+		env.jobs.On("ConflictCheck", tmock.AnythingOfType("*gorm.DB"), techID, startsAt, startsAt.Add(2*time.Hour)).
+			Return([]models.Job{}, errors.New("db error"))
+
+		_, err := env.svc.AssignJob(validInput)
+		assert.ErrorContains(t, err, "db error")
+	})
+
+	t.Run("returns error when job create fails", func(t *testing.T) {
+		db, mock := stubDB(t)
+		mock.ExpectBegin()
+		mock.ExpectRollback()
+		env := setupJobTest(t, db.Begin)
+
+		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
+		env.jobs.On("ConflictCheck", tmock.AnythingOfType("*gorm.DB"), techID, startsAt, startsAt.Add(2*time.Hour)).Return([]models.Job{}, nil)
+		env.jobs.On("Create", tmock.AnythingOfType("*gorm.DB"), tmock.AnythingOfType("*models.Job")).Return(errors.New("db error"))
+
+		_, err := env.svc.AssignJob(validInput)
+		assert.ErrorContains(t, err, "db error")
+	})
+
+	t.Run("returns error when quote status update fails", func(t *testing.T) {
+		db, mock := stubDB(t)
+		mock.ExpectBegin()
+		mock.ExpectRollback()
+		env := setupJobTest(t, db.Begin)
+
+		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
+		env.jobs.On("ConflictCheck", tmock.AnythingOfType("*gorm.DB"), techID, startsAt, startsAt.Add(2*time.Hour)).Return([]models.Job{}, nil)
+		env.jobs.On("Create", tmock.AnythingOfType("*gorm.DB"), tmock.AnythingOfType("*models.Job")).Return(nil)
+		env.quotes.On("UpdateStatus", tmock.AnythingOfType("*gorm.DB"), quoteID, models.QuoteStatusScheduled).Return(errors.New("db error"))
+
+		_, err := env.svc.AssignJob(validInput)
+		assert.ErrorContains(t, err, "db error")
+	})
 }
 
 func TestCompleteJob(t *testing.T) {
@@ -129,5 +182,22 @@ func TestCompleteJob(t *testing.T) {
 
 		_, err := env.svc.CompleteJob(jobID, techID)
 		assert.ErrorIs(t, err, ErrJobNotScheduled)
+	})
+
+	t.Run("returns error when job lookup fails", func(t *testing.T) {
+		env := setupJobTest(t, noTx)
+		env.jobs.On("GetByID", jobID).Return((*models.Job)(nil), errors.New("db error"))
+
+		_, err := env.svc.CompleteJob(jobID, techID)
+		assert.ErrorContains(t, err, "db error")
+	})
+
+	t.Run("returns error when status update fails", func(t *testing.T) {
+		env := setupJobTest(t, noTx)
+		env.jobs.On("GetByID", jobID).Return(&models.Job{ID: jobID, TechnicianID: techID, ManagerID: managerID, Status: models.JobStatusScheduled}, nil)
+		env.jobs.On("UpdateStatus", jobID, models.JobStatusCompleted).Return(errors.New("db error"))
+
+		_, err := env.svc.CompleteJob(jobID, techID)
+		assert.ErrorContains(t, err, "db error")
 	})
 }

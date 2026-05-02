@@ -80,6 +80,26 @@ func TestJobStore_ConflictCheck(t *testing.T) {
 	assert.Len(t, none, 0)
 }
 
+func TestJobStore_ConflictCheck_IgnoresCancelledJobs(t *testing.T) {
+	// Cancelled jobs must not block the same time slot.
+	env := setupDB(t)
+	tech, mgr := seedTechnicianAndManager(t, env)
+	quote := seedQuote(t, env)
+
+	startsAt := time.Now().Add(24 * time.Hour).Truncate(time.Second)
+	endsAt := startsAt.Add(2 * time.Hour)
+
+	cancelled := &models.Job{QuoteID: quote.ID, TechnicianID: tech.ID, ManagerID: mgr.ID,
+		StartsAt: startsAt, EndsAt: endsAt, Status: models.JobStatusCancelled}
+	require.NoError(t, env.jobs.Create(env.db, cancelled))
+
+	tx := env.db.Begin()
+	conflicts, err := env.jobs.ConflictCheck(tx, tech.ID, startsAt, endsAt)
+	tx.Rollback()
+	require.NoError(t, err)
+	assert.Len(t, conflicts, 0)
+}
+
 func TestJobStore_UpdateStatus(t *testing.T) {
 	env := setupDB(t)
 	tech, mgr := seedTechnicianAndManager(t, env)

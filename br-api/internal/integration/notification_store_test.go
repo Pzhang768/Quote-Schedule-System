@@ -43,8 +43,7 @@ func TestNotificationStore_ListSince(t *testing.T) {
 	require.NoError(t, env.db.Create(job1).Error)
 	require.NoError(t, env.db.Create(job2).Error)
 
-	before := time.Now()
-	time.Sleep(10 * time.Millisecond)
+	before := time.Now().Add(-time.Second)
 
 	require.NoError(t, env.notifications.Create(&models.Notification{
 		Type: models.NotificationTypeJobAssigned, RecipientType: models.RecipientTypeTechnician,
@@ -80,4 +79,26 @@ func TestNotificationStore_Read(t *testing.T) {
 	var updated models.Notification
 	require.NoError(t, env.db.First(&updated, "id = ?", n.ID).Error)
 	assert.NotNil(t, updated.ReadAt)
+}
+
+func TestNotificationStore_Read_WrongRecipient(t *testing.T) {
+	// Wrong recipient silently no-ops. store returns no error, row stays unread.
+	env := setupDB(t)
+	tech, mgr := seedTechnicianAndManager(t, env)
+	quote := seedQuote(t, env)
+	job := &models.Job{QuoteID: quote.ID, TechnicianID: tech.ID, ManagerID: mgr.ID,
+		StartsAt: time.Now().Add(time.Hour), EndsAt: time.Now().Add(3 * time.Hour), Status: models.JobStatusScheduled}
+	require.NoError(t, env.db.Create(job).Error)
+
+	n := &models.Notification{
+		Type: models.NotificationTypeJobAssigned, RecipientType: models.RecipientTypeTechnician,
+		RecipientID: tech.ID, JobID: job.ID, Message: "msg",
+	}
+	require.NoError(t, env.notifications.Create(n))
+
+	require.NoError(t, env.notifications.Read(n.ID, mgr.ID))
+
+	var unchanged models.Notification
+	require.NoError(t, env.db.First(&unchanged, "id = ?", n.ID).Error)
+	assert.Nil(t, unchanged.ReadAt)
 }
