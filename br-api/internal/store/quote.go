@@ -1,0 +1,34 @@
+package store
+
+import (
+	"github.com/google/uuid"
+	"github.com/melfish/br-api/internal/models"
+	"gorm.io/gorm"
+)
+
+type QuoteStore struct {
+	db *gorm.DB
+}
+
+func NewQuoteStore(db *gorm.DB) *QuoteStore {
+	return &QuoteStore{db: db}
+}
+
+func (s *QuoteStore) Create(q *models.Quote) error {
+	result := s.db.Create(q)
+	return result.Error
+}
+
+func (s *QuoteStore) List(status models.QuoteStatus, page, pageSize int) ([]models.Quote, error) {
+	var quotes []models.Quote
+	result := s.db.Where("status = ?", status).
+		Offset((page - 1) * pageSize).
+		Limit(pageSize).
+		Find(&quotes)
+	return quotes, result.Error
+}
+
+func (s *QuoteStore) UpdateStatus(id uuid.UUID, status models.QuoteStatus) error {
+	result := s.db.Model(&models.Quote{}).Where("id = ?", id).Update("status", status)
+	return result.Error
+}
