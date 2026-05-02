@@ -19,16 +19,19 @@ func New(db *gorm.DB) *gin.Engine {
 	technicianStore := store.NewTechnicianStore(db)
 	jobStore := store.NewJobStore(db)
 	notificationStore := store.NewNotificationStore(db)
+	managerStore := store.NewManagerStore(db)
 
 	quoteSvc := service.NewQuoteService(quoteStore)
 	technicianSvc := service.NewTechnicianService(technicianStore, jobStore)
 	jobSvc := service.NewJobService(db, jobStore, quoteStore, notificationStore)
 	notificationSvc := service.NewNotificationService(notificationStore)
+	managerSvc := service.NewManagerService(managerStore)
 
 	quotes := handler.NewQuoteHandler(quoteSvc)
 	technicians := handler.NewTechnicianHandler(technicianSvc)
 	jobs := handler.NewJobHandler(jobSvc)
 	notifications := handler.NewNotificationHandler(notificationSvc)
+	managers := handler.NewManagerHandler(managerSvc)
 
 	r := gin.New()
 	r.Use(requestLogger())
@@ -45,6 +48,7 @@ func New(db *gorm.DB) *gin.Engine {
 	v1.GET("/quotes", quotes.List)
 	v1.POST("/quotes", quotes.Create)
 
+	v1.GET("/managers", managers.List)
 	v1.GET("/technicians", technicians.List)
 	v1.GET("/technicians/:id/jobs", technicians.GetSchedule)
 
@@ -52,6 +56,7 @@ func New(db *gorm.DB) *gin.Engine {
 	v1.POST("/jobs", jobs.Assign)
 	v1.PATCH("/jobs/:id/complete", jobs.Complete)
 
+	v1.GET("/notifications", notifications.List)
 	v1.GET("/notifications/stream", notifications.Stream)
 	v1.PATCH("/notifications/:id/read", notifications.Read)
 
@@ -73,7 +78,7 @@ func requestLogger() gin.HandlerFunc {
 
 func corsMiddleware() gin.HandlerFunc {
 	return cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:3000"},
+		AllowOrigins: []string{"http://localhost:3000", "http://localhost:3001"},
 		AllowMethods: []string{"GET", "POST", "PATCH"},
 		AllowHeaders: []string{"Content-Type"},
 	})

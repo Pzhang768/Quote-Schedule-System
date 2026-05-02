@@ -25,12 +25,12 @@ func NewQuoteHandler(svc *service.QuoteService) *QuoteHandler {
 // @Router      /quotes [get]
 func (h *QuoteHandler) List(c *gin.Context) {
 	page, pageSize := pagination(c)
-	quotes, err := h.svc.ListUnscheduled(page, pageSize)
+	result, err := h.svc.ListUnscheduled(page, pageSize)
 	if err != nil {
 		Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	Success(c, http.StatusOK, quotes)
+	SuccessPaged(c, http.StatusOK, result.Items, result.Total, page, pageSize)
 }
 
 // @Summary     Create a quote

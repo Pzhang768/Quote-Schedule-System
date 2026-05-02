@@ -70,6 +70,35 @@ func (h *NotificationHandler) Stream(c *gin.Context) {
 	}
 }
 
+// @Summary     List notifications for a recipient
+// @Tags        notifications
+// @Produce     json
+// @Param       recipient_type  query  string  true  "technician or manager"
+// @Param       recipient_id    query  string  true  "Recipient UUID"
+// @Success     200  {object}  Response[[]service.NotificationResponse]
+// @Failure     400  {object}  ErrorResponse
+// @Router      /notifications [get]
+func (h *NotificationHandler) List(c *gin.Context) {
+	recipientType := models.RecipientType(c.Query("recipient_type"))
+	if recipientType != models.RecipientTypeTechnician && recipientType != models.RecipientTypeManager {
+		Fail(c, http.StatusBadRequest, "recipient_type must be technician or manager")
+		return
+	}
+
+	recipientID, err := uuid.Parse(c.Query("recipient_id"))
+	if err != nil {
+		Fail(c, http.StatusBadRequest, "invalid recipient_id")
+		return
+	}
+
+	notifications, err := h.svc.List(recipientType, recipientID)
+	if err != nil {
+		Fail(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	Success(c, http.StatusOK, notifications)
+}
+
 // @Summary     Mark a notification as read
 // @Tags        notifications
 // @Param       id            path   string  true  "Notification ID"
