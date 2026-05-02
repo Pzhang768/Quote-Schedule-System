@@ -11,7 +11,6 @@ func Connect(dsn string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	if err := db.AutoMigrate(
 		&models.Manager{},
 		&models.Technician{},
@@ -21,10 +20,5 @@ func Connect(dsn string) (*gorm.DB, error) {
 	); err != nil {
 		return nil, err
 	}
-
-	if err := Seed(db); err != nil {
-		return nil, err
-	}
-
 	return db, nil
 }

@@ -31,6 +31,11 @@ func main() {
 	}
 	logger.Log.Info("database connected")
 
+	if err := db.Seed(database); err != nil {
+		logger.Log.Error("seed failed", "error", err)
+		os.Exit(1)
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
