@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func New(db *gorm.DB) *gin.Engine {
+func New(db *gorm.DB, corsOrigin string) *gin.Engine {
 	quoteStore := store.NewQuoteStore(db)
 	technicianStore := store.NewTechnicianStore(db)
 	jobStore := store.NewJobStore(db)
@@ -35,7 +35,7 @@ func New(db *gorm.DB) *gin.Engine {
 
 	r := gin.New()
 	r.Use(requestLogger())
-	r.Use(corsMiddleware())
+	r.Use(corsMiddleware(corsOrigin))
 	r.Use(gin.Recovery())
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -76,9 +76,9 @@ func requestLogger() gin.HandlerFunc {
 	}
 }
 
-func corsMiddleware() gin.HandlerFunc {
+func corsMiddleware(origin string) gin.HandlerFunc {
 	return cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:3000", "http://localhost:3001"},
+		AllowOrigins: []string{origin},
 		AllowMethods: []string{"GET", "POST", "PATCH"},
 		AllowHeaders: []string{"Content-Type"},
 	})

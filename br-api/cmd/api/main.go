@@ -43,7 +43,12 @@ func main() {
 
 	docs.SwaggerInfo.Host = "localhost:" + port
 
-	r := router.New(database)
+	corsOrigin := os.Getenv("CORS_ORIGIN")
+	if corsOrigin == "" {
+		corsOrigin = "http://localhost:3000"
+	}
+
+	r := router.New(database, corsOrigin)
 	logger.Log.Info("starting server", "port", port)
 	if err := r.Run(":" + port); err != nil {
 		logger.Log.Error("server failed", "error", err)
