@@ -51,6 +51,24 @@ Swagger UI: `http://localhost:8081/swagger/index.html`
 
 Pagination is supported on list endpoints via `?page=1&page_size=20` (max page_size: 100).
 
+## Testing
+
+**Unit tests** (no DB required):
+
+```bash
+cd br-api
+go test ./internal/service/...
+```
+
+**Integration tests** (requires Docker):
+
+```bash
+cd br-api
+go test ./internal/integration/... -timeout 300s
+```
+
+Integration tests spin up an isolated MySQL container per test via `testcontainers-go` — no local DB setup needed. Each container is torn down automatically after the test completes.
+
 ## Environment variables
 
 | Variable | Default | Description |
