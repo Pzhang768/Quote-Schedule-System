@@ -13,8 +13,21 @@ func NewQuoteService(quotes *store.QuoteStore) *QuoteService {
 	return &QuoteService{quotes: quotes}
 }
 
-func (s *QuoteService) ListUnscheduled(page, pageSize int) ([]models.Quote, error) {
-	return s.quotes.List(models.QuoteStatusUnscheduled, page, pageSize)
+type PagedQuotes struct {
+	Items    []models.Quote
+	Total    int
+}
+
+func (s *QuoteService) ListUnscheduled(page, pageSize int) (PagedQuotes, error) {
+	items, err := s.quotes.List(models.QuoteStatusUnscheduled, page, pageSize)
+	if err != nil {
+		return PagedQuotes{}, err
+	}
+	total, err := s.quotes.Count(models.QuoteStatusUnscheduled)
+	if err != nil {
+		return PagedQuotes{}, err
+	}
+	return PagedQuotes{Items: items, Total: total}, nil
 }
 
 func (s *QuoteService) Create(q *models.Quote) error {

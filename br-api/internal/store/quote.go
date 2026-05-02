@@ -34,6 +34,12 @@ func (s *QuoteStore) List(status models.QuoteStatus, page, pageSize int) ([]mode
 	return quotes, result.Error
 }
 
+func (s *QuoteStore) Count(status models.QuoteStatus) (int, error) {
+	var count int64
+	result := s.db.Model(&models.Quote{}).Where("status = ?", status).Count(&count)
+	return int(count), result.Error
+}
+
 func (s *QuoteStore) UpdateStatus(tx *gorm.DB, id uuid.UUID, status models.QuoteStatus) error {
 	result := tx.Model(&models.Quote{}).Where("id = ?", id).Update("status", status)
 	return result.Error

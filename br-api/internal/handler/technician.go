@@ -26,12 +26,12 @@ func NewTechnicianHandler(svc *service.TechnicianService) *TechnicianHandler {
 // @Router      /technicians [get]
 func (h *TechnicianHandler) List(c *gin.Context) {
 	page, pageSize := pagination(c)
-	technicians, err := h.svc.List(page, pageSize)
+	result, err := h.svc.List(page, pageSize)
 	if err != nil {
 		Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	Success(c, http.StatusOK, technicians)
+	SuccessPaged(c, http.StatusOK, result.Items, result.Total, page, pageSize)
 }
 
 // @Summary     Get a technician's job schedule

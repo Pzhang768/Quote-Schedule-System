@@ -14,25 +14,28 @@ import (
 	"gorm.io/gorm"
 )
 
-func New(db *gorm.DB) *gin.Engine {
+func New(db *gorm.DB, corsOrigin string) *gin.Engine {
 	quoteStore := store.NewQuoteStore(db)
 	technicianStore := store.NewTechnicianStore(db)
 	jobStore := store.NewJobStore(db)
 	notificationStore := store.NewNotificationStore(db)
+	managerStore := store.NewManagerStore(db)
 
 	quoteSvc := service.NewQuoteService(quoteStore)
 	technicianSvc := service.NewTechnicianService(technicianStore, jobStore)
 	jobSvc := service.NewJobService(db, jobStore, quoteStore, notificationStore)
 	notificationSvc := service.NewNotificationService(notificationStore)
+	managerSvc := service.NewManagerService(managerStore)
 
 	quotes := handler.NewQuoteHandler(quoteSvc)
 	technicians := handler.NewTechnicianHandler(technicianSvc)
 	jobs := handler.NewJobHandler(jobSvc)
 	notifications := handler.NewNotificationHandler(notificationSvc)
+	managers := handler.NewManagerHandler(managerSvc)
 
 	r := gin.New()
 	r.Use(requestLogger())
-	r.Use(corsMiddleware())
+	r.Use(corsMiddleware(corsOrigin))
 	r.Use(gin.Recovery())
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -45,6 +48,7 @@ func New(db *gorm.DB) *gin.Engine {
 	v1.GET("/quotes", quotes.List)
 	v1.POST("/quotes", quotes.Create)
 
+	v1.GET("/managers", managers.List)
 	v1.GET("/technicians", technicians.List)
 	v1.GET("/technicians/:id/jobs", technicians.GetSchedule)
 
@@ -52,6 +56,7 @@ func New(db *gorm.DB) *gin.Engine {
 	v1.POST("/jobs", jobs.Assign)
 	v1.PATCH("/jobs/:id/complete", jobs.Complete)
 
+	v1.GET("/notifications", notifications.List)
 	v1.GET("/notifications/stream", notifications.Stream)
 	v1.PATCH("/notifications/:id/read", notifications.Read)
 
@@ -71,9 +76,9 @@ func requestLogger() gin.HandlerFunc {
 	}
 }
 
-func corsMiddleware() gin.HandlerFunc {
+func corsMiddleware(origin string) gin.HandlerFunc {
 	return cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:3000"},
+		AllowOrigins: []string{origin},
 		AllowMethods: []string{"GET", "POST", "PATCH"},
 		AllowHeaders: []string{"Content-Type"},
 	})
