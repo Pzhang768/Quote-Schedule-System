@@ -17,6 +17,7 @@ type jobStore interface {
 }
 
 type quoteStore interface {
+	Create(q *models.Quote) error
 	List(status models.QuoteStatus, page, pageSize int) ([]models.Quote, error)
 	GetByID(id uuid.UUID) (*models.Quote, error)
 	UpdateStatus(id uuid.UUID, status models.QuoteStatus) error
@@ -25,6 +26,7 @@ type quoteStore interface {
 type notificationStore interface {
 	Create(n *models.Notification) error
 	List(recipientType models.RecipientType, recipientID uuid.UUID) ([]models.Notification, error)
+	ListSince(recipientType models.RecipientType, recipientID uuid.UUID, since time.Time) ([]models.Notification, error)
 	Read(id, recipientID uuid.UUID) error
 }
 

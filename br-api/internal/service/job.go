@@ -27,6 +27,15 @@ func NewJobService(db *gorm.DB, jobs *store.JobStore, quotes *store.QuoteStore, 
 	}
 }
 
+func (svc *JobService) GetByID(id uuid.UUID) (*JobResponse, error) {
+	job, err := svc.jobs.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	response := ToJobResponse(job)
+	return &response, nil
+}
+
 func (svc *JobService) AssignJob(input AssignJobInput) (*JobResponse, error) {
 	if !input.StartsAt.After(time.Now()) {
 		return nil, ErrStartsInPast
