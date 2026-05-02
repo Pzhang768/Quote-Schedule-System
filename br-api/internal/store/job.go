@@ -29,9 +29,13 @@ func (s *JobStore) GetByID(id uuid.UUID) (*models.Job, error) {
 	return &j, result.Error
 }
 
-func (s *JobStore) ListByTechnician(technicianID uuid.UUID) ([]models.Job, error) {
+func (s *JobStore) ListByTechnicianAndDate(technicianID uuid.UUID, date time.Time) ([]models.Job, error) {
+	dayStart := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	dayEnd := dayStart.Add(24 * time.Hour)
+
 	var jobs []models.Job
-	result := s.db.Preload("Quote").Where("technician_id = ?", technicianID).
+	result := s.db.Select("id, starts_at, ends_at, status").
+		Where("technician_id = ? AND starts_at >= ? AND starts_at < ?", technicianID, dayStart, dayEnd).
 		Order("starts_at asc").Find(&jobs)
 	return jobs, result.Error
 }
