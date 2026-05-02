@@ -1,6 +1,13 @@
+// @title           Quote Scheduler API
+// @version         1.0
+// @description     Quote scheduling and notification system
+// @host            localhost:8081
+// @BasePath        /api/v1
+
 package main
 
 import (
+	_ "github.com/melfish/br-api/docs"
 	"os"
 
 	"github.com/joho/godotenv"
