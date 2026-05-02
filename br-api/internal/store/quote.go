@@ -19,6 +19,12 @@ func (s *QuoteStore) Create(q *models.Quote) error {
 	return result.Error
 }
 
+func (s *QuoteStore) GetByID(id uuid.UUID) (*models.Quote, error) {
+	var q models.Quote
+	result := s.db.First(&q, "id = ?", id)
+	return &q, result.Error
+}
+
 func (s *QuoteStore) List(status models.QuoteStatus, page, pageSize int) ([]models.Quote, error) {
 	var quotes []models.Quote
 	result := s.db.Where("status = ?", status).
