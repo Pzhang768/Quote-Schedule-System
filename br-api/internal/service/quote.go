@@ -16,3 +16,7 @@ func NewQuoteService(quotes *store.QuoteStore) *QuoteService {
 func (s *QuoteService) ListUnscheduled(page, pageSize int) ([]models.Quote, error) {
 	return s.quotes.List(models.QuoteStatusUnscheduled, page, pageSize)
 }
+
+func (s *QuoteService) Create(q *models.Quote) error {
+	return s.quotes.Create(q)
+}

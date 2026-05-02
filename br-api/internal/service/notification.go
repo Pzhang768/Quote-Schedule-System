@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/melfish/br-api/internal/models"
@@ -19,6 +20,14 @@ func NewNotificationService(notifications *store.NotificationStore) *Notificatio
 
 func (s *NotificationService) List(recipientType models.RecipientType, recipientID uuid.UUID) ([]NotificationResponse, error) {
 	notifications, err := s.notifications.List(recipientType, recipientID)
+	if err != nil {
+		return nil, err
+	}
+	return ToNotificationResponses(notifications), nil
+}
+
+func (s *NotificationService) ListSince(recipientType models.RecipientType, recipientID uuid.UUID, since time.Time) ([]NotificationResponse, error) {
+	notifications, err := s.notifications.ListSince(recipientType, recipientID, since)
 	if err != nil {
 		return nil, err
 	}

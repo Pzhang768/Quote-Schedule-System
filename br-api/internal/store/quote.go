@@ -34,7 +34,7 @@ func (s *QuoteStore) List(status models.QuoteStatus, page, pageSize int) ([]mode
 	return quotes, result.Error
 }
 
-func (s *QuoteStore) UpdateStatus(id uuid.UUID, status models.QuoteStatus) error {
-	result := s.db.Model(&models.Quote{}).Where("id = ?", id).Update("status", status)
+func (s *QuoteStore) UpdateStatus(tx *gorm.DB, id uuid.UUID, status models.QuoteStatus) error {
+	result := tx.Model(&models.Quote{}).Where("id = ?", id).Update("status", status)
 	return result.Error
 }

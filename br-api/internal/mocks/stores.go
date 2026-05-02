@@ -32,6 +32,9 @@ func (m *JobStore) ConflictCheck(tx *gorm.DB, technicianID uuid.UUID, startsAt, 
 
 type QuoteStore struct{ mock.Mock }
 
+func (m *QuoteStore) Create(q *models.Quote) error {
+	return m.Called(q).Error(0)
+}
 func (m *QuoteStore) GetByID(id uuid.UUID) (*models.Quote, error) {
 	args := m.Called(id)
 	return args.Get(0).(*models.Quote), args.Error(1)
@@ -40,8 +43,8 @@ func (m *QuoteStore) List(status models.QuoteStatus, page, pageSize int) ([]mode
 	args := m.Called(status, page, pageSize)
 	return args.Get(0).([]models.Quote), args.Error(1)
 }
-func (m *QuoteStore) UpdateStatus(id uuid.UUID, status models.QuoteStatus) error {
-	return m.Called(id, status).Error(0)
+func (m *QuoteStore) UpdateStatus(tx *gorm.DB, id uuid.UUID, status models.QuoteStatus) error {
+	return m.Called(tx, id, status).Error(0)
 }
 
 type NotificationStore struct{ mock.Mock }
@@ -51,6 +54,10 @@ func (m *NotificationStore) Create(n *models.Notification) error {
 }
 func (m *NotificationStore) List(recipientType models.RecipientType, recipientID uuid.UUID) ([]models.Notification, error) {
 	args := m.Called(recipientType, recipientID)
+	return args.Get(0).([]models.Notification), args.Error(1)
+}
+func (m *NotificationStore) ListSince(recipientType models.RecipientType, recipientID uuid.UUID, since time.Time) ([]models.Notification, error) {
+	args := m.Called(recipientType, recipientID, since)
 	return args.Get(0).([]models.Notification), args.Error(1)
 }
 func (m *NotificationStore) Read(id, recipientID uuid.UUID) error {

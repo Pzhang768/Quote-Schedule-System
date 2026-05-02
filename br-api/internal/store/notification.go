@@ -35,3 +35,10 @@ func (s *NotificationStore) List(recipientType models.RecipientType, recipientID
 		Order("created_at desc").Find(&notifications)
 	return notifications, result.Error
 }
+
+func (s *NotificationStore) ListSince(recipientType models.RecipientType, recipientID uuid.UUID, since time.Time) ([]models.Notification, error) {
+	var notifications []models.Notification
+	result := s.db.Where("recipient_type = ? AND recipient_id = ? AND created_at > ?", recipientType, recipientID, since).
+		Order("created_at asc").Find(&notifications)
+	return notifications, result.Error
+}

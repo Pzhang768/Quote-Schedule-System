@@ -5,13 +5,31 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/melfish/br-api/internal/handler"
 	"github.com/melfish/br-api/internal/logger"
+	"github.com/melfish/br-api/internal/service"
+	"github.com/melfish/br-api/internal/store"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 )
 
 func New(db *gorm.DB) *gin.Engine {
+	quoteStore := store.NewQuoteStore(db)
+	technicianStore := store.NewTechnicianStore(db)
+	jobStore := store.NewJobStore(db)
+	notificationStore := store.NewNotificationStore(db)
+
+	quoteSvc := service.NewQuoteService(quoteStore)
+	technicianSvc := service.NewTechnicianService(technicianStore, jobStore)
+	jobSvc := service.NewJobService(db, jobStore, quoteStore, notificationStore)
+	notificationSvc := service.NewNotificationService(notificationStore)
+
+	quotes := handler.NewQuoteHandler(quoteSvc)
+	technicians := handler.NewTechnicianHandler(technicianSvc)
+	jobs := handler.NewJobHandler(jobSvc)
+	notifications := handler.NewNotificationHandler(notificationSvc)
+
 	r := gin.New()
 	r.Use(requestLogger())
 	r.Use(corsMiddleware())
@@ -23,6 +41,19 @@ func New(db *gorm.DB) *gin.Engine {
 	v1.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+
+	v1.GET("/quotes", quotes.List)
+	v1.POST("/quotes", quotes.Create)
+
+	v1.GET("/technicians", technicians.List)
+	v1.GET("/technicians/:id/jobs", technicians.GetSchedule)
+
+	v1.GET("/jobs/:id", jobs.Get)
+	v1.POST("/jobs", jobs.Assign)
+	v1.PATCH("/jobs/:id/complete", jobs.Complete)
+
+	v1.GET("/notifications/stream", notifications.Stream)
+	v1.PATCH("/notifications/:id/read", notifications.Read)
 
 	return r
 }

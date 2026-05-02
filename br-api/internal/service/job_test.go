@@ -62,7 +62,7 @@ func TestAssignJob(t *testing.T) {
 		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
 		env.jobs.On("ConflictCheck", tmock.AnythingOfType("*gorm.DB"), techID, startsAt, startsAt.Add(2*time.Hour)).Return([]models.Job{}, nil)
 		env.jobs.On("Create", tmock.AnythingOfType("*gorm.DB"), tmock.AnythingOfType("*models.Job")).Return(nil)
-		env.quotes.On("UpdateStatus", quoteID, models.QuoteStatusScheduled).Return(nil)
+		env.quotes.On("UpdateStatus", tmock.AnythingOfType("*gorm.DB"), quoteID, models.QuoteStatusScheduled).Return(nil)
 		env.notifs.On("Create", tmock.AnythingOfType("*models.Notification")).Return(nil)
 
 		response, err := env.svc.AssignJob(validInput)
