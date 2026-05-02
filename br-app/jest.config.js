@@ -2,7 +2,10 @@
 const config = {
   testEnvironment: "jsdom",
   transform: {
-    "^.+\\.(ts|tsx|js|jsx)$": ["@swc/jest"],
+    "^.+\\.(ts|tsx|js|jsx)$": [
+      "@swc/jest",
+      { jsc: { transform: { react: { runtime: "automatic" } } } },
+    ],
   },
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",

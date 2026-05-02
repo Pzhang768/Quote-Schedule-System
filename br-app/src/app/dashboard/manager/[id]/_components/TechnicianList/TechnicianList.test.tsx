@@ -1,5 +1,4 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import TechnicianList from "./TechnicianList";
 import { getTechnicianJobs } from "@/api/jobs";
 import type { Technician } from "@/api/technicians";
