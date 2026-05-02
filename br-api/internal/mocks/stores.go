@@ -43,6 +43,10 @@ func (m *QuoteStore) List(status models.QuoteStatus, page, pageSize int) ([]mode
 	args := m.Called(status, page, pageSize)
 	return args.Get(0).([]models.Quote), args.Error(1)
 }
+func (m *QuoteStore) Count(status models.QuoteStatus) (int, error) {
+	args := m.Called(status)
+	return args.Int(0), args.Error(1)
+}
 func (m *QuoteStore) UpdateStatus(tx *gorm.DB, id uuid.UUID, status models.QuoteStatus) error {
 	return m.Called(tx, id, status).Error(0)
 }
@@ -70,12 +74,20 @@ func (m *ManagerStore) List(page, pageSize int) ([]models.Manager, error) {
 	args := m.Called(page, pageSize)
 	return args.Get(0).([]models.Manager), args.Error(1)
 }
+func (m *ManagerStore) Count() (int, error) {
+	args := m.Called()
+	return args.Int(0), args.Error(1)
+}
 
 type TechnicianStore struct{ mock.Mock }
 
 func (m *TechnicianStore) List(page, pageSize int) ([]models.Technician, error) {
 	args := m.Called(page, pageSize)
 	return args.Get(0).([]models.Technician), args.Error(1)
+}
+func (m *TechnicianStore) Count() (int, error) {
+	args := m.Called()
+	return args.Int(0), args.Error(1)
 }
 func (m *TechnicianStore) GetByID(id uuid.UUID) (*models.Technician, error) {
 	args := m.Called(id)
