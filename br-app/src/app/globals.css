@@ -33,3 +33,33 @@
   --color-accent-moss: #1fb67a;
   --color-accent-brass: #9a8c5c;
 }
+
+@layer utilities {
+  .text-title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .text-heading {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .text-body {
+    font-size: 19px;
+    font-weight: 400;
+  }
+
+  .text-caption {
+    font-size: 17px;
+    font-weight: 400;
+  }
+
+  .text-caption-upper {
+    font-size: 17px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}
