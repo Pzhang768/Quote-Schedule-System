@@ -10,6 +10,8 @@ export interface Job {
   status: "scheduled" | "completed" | "cancelled";
   completed_at: string | null;
   created_at: string;
+  customer_name?: string;
+  address?: string;
 }
 
 export interface AssignJobPayload {

@@ -49,16 +49,9 @@ func (h *TechnicianHandler) GetSchedule(c *gin.Context) {
 		return
 	}
 
-	tz := c.DefaultQuery("timezone", "Australia/Sydney")
-	loc, err := time.LoadLocation(tz)
-	if err != nil {
-		Fail(c, http.StatusBadRequest, "invalid timezone")
-		return
-	}
-
-	date := time.Now().In(loc)
+	date := time.Now().UTC()
 	if d := c.Query("date"); d != "" {
-		parsed, parseErr := time.ParseInLocation("2006-01-02", d, loc)
+		parsed, parseErr := time.ParseInLocation("2006-01-02", d, time.UTC)
 		if parseErr != nil {
 			Fail(c, http.StatusBadRequest, "date must be YYYY-MM-DD")
 			return
