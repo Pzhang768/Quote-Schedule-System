@@ -22,5 +22,9 @@ func Connect(dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if err := Seed(db); err != nil {
+		return nil, err
+	}
+
 	return db, nil
 }
