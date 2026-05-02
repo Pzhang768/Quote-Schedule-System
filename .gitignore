@@ -26,8 +26,37 @@ go.work.sum
 
 # env file
 .env
+.env*
+!.env.example
+!br-app/.env.example
 
 # Editor/IDE
 # .idea/
 # .vscode/
 .env.local
+
+# root node_modules (husky + commitlint)
+/node_modules
+/package-lock.json
+
+# br-app (Next.js)
+br-app/node_modules
+br-app/.next/
+br-app/out/
+br-app/build
+br-app/coverage
+br-app/.pnp
+br-app/.pnp.*
+br-app/.yarn/*
+!br-app/.yarn/patches
+!br-app/.yarn/plugins
+!br-app/.yarn/releases
+!br-app/.yarn/versions
+br-app/.vercel
+br-app/*.tsbuildinfo
+br-app/next-env.d.ts
+br-app/npm-debug.log*
+br-app/yarn-debug.log*
+br-app/yarn-error.log*
+br-app/.pnpm-debug.log*
+br-app/*.pem

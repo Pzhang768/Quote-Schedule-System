@@ -1,0 +1,3 @@
+if git diff --cached --name-only | grep -q "^br-app/"; then
+  cd br-app && npx tsc --noEmit && npx prettier --check . && npx eslint .
+fi
