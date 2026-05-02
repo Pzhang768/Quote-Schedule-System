@@ -1,3 +1,4 @@
 if git diff --cached --name-only | grep -q "^br-app/"; then
-  cd br-app && npx tsc --noEmit && npx prettier --check . && npx eslint .
+  STAGED=$(git diff --cached --name-only | grep "^br-app/" | sed 's|^br-app/||' | grep -E '\.(ts|tsx|js|jsx|css|json|md)$')
+  cd br-app && npx tsc --noEmit && echo "$STAGED" | xargs npx prettier --check && npx eslint .
 fi

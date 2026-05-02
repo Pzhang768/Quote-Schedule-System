@@ -86,6 +86,19 @@ npm run dev
 
 The app starts on `http://localhost:3000`.
 
+**3. Run unit tests**
+
+```bash
+cd br-app
+npx jest
+```
+
+With coverage:
+
+```bash
+npx jest --coverage
+```
+
 ## Environment variables
 
 | Variable | Default | Description |
