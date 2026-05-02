@@ -3,8 +3,10 @@ import userEvent from "@testing-library/user-event";
 import SideBar from "./SideBar";
 import useNotification from "@/hooks/useNotification/useNotification";
 
+const mockPush = jest.fn();
+
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: jest.fn() }),
+  useRouter: () => ({ push: mockPush }),
   usePathname: jest.fn(),
 }));
 
@@ -17,6 +19,7 @@ const usePathnameMock = jest.mocked(usePathname);
 describe("SideBar", () => {
   afterEach(() => {
     jest.resetAllMocks();
+    mockPush.mockReset();
   });
 
   test("renders Manager View and Technician View buttons", () => {
@@ -82,5 +85,41 @@ describe("SideBar", () => {
     await userEvent.click(screen.getByText("Job assigned"));
 
     expect(markRead).toHaveBeenCalledWith("n-1");
+  });
+
+  test("navigates to manager dashboard when Manager View clicked", async () => {
+    usePathnameMock.mockReturnValue("/");
+    render(<SideBar />);
+
+    await userEvent.click(screen.getByRole("button", { name: /Manager View/i }));
+
+    expect(mockPush).toHaveBeenCalledWith("/dashboard/manager");
+  });
+
+  test("navigates to technician dashboard when Technician View clicked", async () => {
+    usePathnameMock.mockReturnValue("/");
+    render(<SideBar />);
+
+    await userEvent.click(screen.getByRole("button", { name: /Technician View/i }));
+
+    expect(mockPush).toHaveBeenCalledWith("/dashboard/technician");
+  });
+
+  test("applies active styles to Manager View button when role is manager", () => {
+    usePathnameMock.mockReturnValue("/dashboard/manager/m-1");
+    useNotificationMock.mockReturnValue({ notifications: [], markRead: jest.fn() });
+    render(<SideBar />);
+
+    const btn = screen.getByRole("button", { name: /Manager View/i });
+    expect(btn).toHaveClass("bg-ink", "text-white");
+  });
+
+  test("applies active styles to Technician View button when role is technician", () => {
+    usePathnameMock.mockReturnValue("/dashboard/technician/t-1");
+    useNotificationMock.mockReturnValue({ notifications: [], markRead: jest.fn() });
+    render(<SideBar />);
+
+    const btn = screen.getByRole("button", { name: /Technician View/i });
+    expect(btn).toHaveClass("bg-ink", "text-white");
   });
 });

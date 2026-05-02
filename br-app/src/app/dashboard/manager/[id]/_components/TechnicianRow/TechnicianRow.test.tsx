@@ -105,4 +105,29 @@ describe("TechnicianRow", () => {
     expect(options).not.toContain("07:00");
     expect(options).not.toContain("07:30");
   });
+
+  test("renders bg-ok dot for completed job", async () => {
+    const job: Job = {
+      ...makeJob("j-1", "2026-05-03T07:00:00Z", "2026-05-03T09:00:00Z"),
+      status: "completed",
+    };
+    getTechnicianJobsMock.mockResolvedValue([job]);
+    render(<TechnicianRow {...baseProps} />);
+
+    await waitFor(() => expect(screen.getByText("1 job booked")).toBeInTheDocument());
+
+    const dot = document.querySelector(".bg-ok");
+    expect(dot).toBeInTheDocument();
+  });
+
+  test("renders bg-accent dot for scheduled job", async () => {
+    const job = makeJob("j-1", "2026-05-03T07:00:00Z", "2026-05-03T09:00:00Z");
+    getTechnicianJobsMock.mockResolvedValue([job]);
+    render(<TechnicianRow {...baseProps} />);
+
+    await waitFor(() => expect(screen.getByText("1 job booked")).toBeInTheDocument());
+
+    const dot = document.querySelector(".bg-accent");
+    expect(dot).toBeInTheDocument();
+  });
 });
