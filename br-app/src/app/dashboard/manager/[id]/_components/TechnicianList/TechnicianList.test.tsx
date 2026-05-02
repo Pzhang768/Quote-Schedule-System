@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import TechnicianList from "./TechnicianList";
 import { getTechnicianJobs } from "@/api/jobs";
 import type { Technician } from "@/api/technicians";
@@ -80,5 +81,41 @@ describe("TechnicianList", () => {
 
     expect(screen.getByRole("button", { name: "Prev" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next" })).toBeInTheDocument();
+  });
+
+  test("calls onSelect when technician row clicked", async () => {
+    const onSelect = jest.fn();
+    const technicians = [makeTechnician("t-1", "Alice")];
+    render(
+      <TechnicianList
+        {...baseProps}
+        quoteSelected={true}
+        technicians={technicians}
+        onSelect={onSelect}
+      />
+    );
+
+    await userEvent.click(screen.getByText("Alice"));
+
+    expect(onSelect).toHaveBeenCalledWith(technicians[0]);
+  });
+
+  test("calls onTimeSelect with technician and time when time selected", async () => {
+    const onTimeSelect = jest.fn();
+    const technicians = [makeTechnician("t-1", "Alice")];
+    render(
+      <TechnicianList
+        {...baseProps}
+        quoteSelected={true}
+        technicians={technicians}
+        onTimeSelect={onTimeSelect}
+      />
+    );
+
+    await waitFor(() => expect(screen.getByRole("combobox")).toBeInTheDocument());
+
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "09:00" } });
+
+    expect(onTimeSelect).toHaveBeenCalledWith(technicians[0], "09:00");
   });
 });

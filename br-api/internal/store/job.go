@@ -34,7 +34,7 @@ func (s *JobStore) ListByTechnicianAndDate(technicianID uuid.UUID, date time.Tim
 	dayEnd := dayStart.Add(24 * time.Hour)
 
 	var jobs []models.Job
-	result := s.db.Select("id, starts_at, ends_at, status").
+	result := s.db.Preload("Quote").
 		Where("technician_id = ? AND starts_at >= ? AND starts_at < ?", technicianID, dayStart, dayEnd).
 		Order("starts_at asc").Find(&jobs)
 	return jobs, result.Error

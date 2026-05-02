@@ -42,4 +42,10 @@ describe("QuoteCard", () => {
 
     expect(onClick).toHaveBeenCalledTimes(1);
   });
+
+  test("applies selected styles when selected is true", () => {
+    const { container } = render(<QuoteCard quote={quote} selected={true} onClick={jest.fn()} />);
+
+    expect(container.firstChild).toHaveClass("border-ink", "bg-ink/5");
+  });
 });

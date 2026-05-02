@@ -17,7 +17,7 @@ interface Props {
   onNext: () => void;
 }
 
-const today = () => new Date().toISOString().split("T")[0];
+const today = () => new Date().toLocaleDateString("en-CA");
 
 export default function TechnicianList({
   technicians,

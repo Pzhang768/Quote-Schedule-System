@@ -31,10 +31,12 @@ type JobResponse struct {
 }
 
 type JobSlotResponse struct {
-	ID       uuid.UUID        `json:"id"`
-	StartsAt time.Time        `json:"starts_at"`
-	EndsAt   time.Time        `json:"ends_at"`
-	Status   models.JobStatus `json:"status"`
+	ID           uuid.UUID        `json:"id"`
+	StartsAt     time.Time        `json:"starts_at"`
+	EndsAt       time.Time        `json:"ends_at"`
+	Status       models.JobStatus `json:"status"`
+	CustomerName string           `json:"customer_name"`
+	Address      string           `json:"address"`
 }
 
 type NotificationResponse struct {

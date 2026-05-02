@@ -52,7 +52,7 @@ func (s *TechnicianService) GetSchedule(technicianID uuid.UUID, date time.Time) 
 
 	slots := make([]JobSlotResponse, len(jobs))
 	for i, j := range jobs {
-		slots[i] = JobSlotResponse{ID: j.ID, StartsAt: j.StartsAt, EndsAt: j.EndsAt, Status: j.Status}
+		slots[i] = JobSlotResponse{ID: j.ID, StartsAt: j.StartsAt, EndsAt: j.EndsAt, Status: j.Status, CustomerName: j.Quote.CustomerName, Address: j.Quote.Address}
 	}
 	return slots, nil
 }

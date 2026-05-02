@@ -121,6 +121,22 @@ describe("useNotification", () => {
     expect(result.current.notifications).toEqual([]);
   });
 
+  test("markRead leaves non-matching notifications unchanged", async () => {
+    const n1 = makeNotification("n-1");
+    const n2 = makeNotification("n-2");
+    getNotificationsMock.mockResolvedValue([n1, n2]);
+    markNotificationReadMock.mockResolvedValue();
+    createMockEventSource();
+
+    const { result } = renderHook(() => useNotification("manager", "m-1"));
+    await waitFor(() => expect(result.current.notifications).toHaveLength(2));
+
+    await act(() => result.current.markRead("n-1"));
+
+    expect(result.current.notifications[0].read_at).not.toBeNull();
+    expect(result.current.notifications[1].read_at).toBeNull();
+  });
+
   test("resets notifications when recipientId changes", async () => {
     const notifications1 = [makeNotification("n-1")];
     const notifications2 = [makeNotification("n-2")];
