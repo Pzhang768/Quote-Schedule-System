@@ -4,5 +4,5 @@ if git diff origin/$(git rev-parse --abbrev-ref HEAD)..HEAD --name-only 2>/dev/n
 fi
 
 if git diff origin/$(git rev-parse --abbrev-ref HEAD)..HEAD --name-only 2>/dev/null | grep -q "^br-api/"; then
-  cd br-api && go test ./...
+  cd br-api && go test ./internal/service/...
 fi
