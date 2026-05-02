@@ -19,8 +19,21 @@ func NewTechnicianService(technicians *store.TechnicianStore, jobs *store.JobSto
 	return &TechnicianService{technicians: technicians, jobs: jobs}
 }
 
-func (s *TechnicianService) List(page, pageSize int) ([]models.Technician, error) {
-	return s.technicians.List(page, pageSize)
+type PagedTechnicians struct {
+	Items []models.Technician
+	Total int
+}
+
+func (s *TechnicianService) List(page, pageSize int) (PagedTechnicians, error) {
+	items, err := s.technicians.List(page, pageSize)
+	if err != nil {
+		return PagedTechnicians{}, err
+	}
+	total, err := s.technicians.Count()
+	if err != nil {
+		return PagedTechnicians{}, err
+	}
+	return PagedTechnicians{Items: items, Total: total}, nil
 }
 
 func (s *TechnicianService) GetSchedule(technicianID uuid.UUID, date time.Time) ([]JobSlotResponse, error) {

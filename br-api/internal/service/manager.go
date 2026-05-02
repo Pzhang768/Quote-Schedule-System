@@ -13,6 +13,19 @@ func NewManagerService(managers *store.ManagerStore) *ManagerService {
 	return &ManagerService{managers: managers}
 }
 
-func (s *ManagerService) List(page, pageSize int) ([]models.Manager, error) {
-	return s.managers.List(page, pageSize)
+type PagedManagers struct {
+	Items []models.Manager
+	Total int
+}
+
+func (s *ManagerService) List(page, pageSize int) (PagedManagers, error) {
+	items, err := s.managers.List(page, pageSize)
+	if err != nil {
+		return PagedManagers{}, err
+	}
+	total, err := s.managers.Count()
+	if err != nil {
+		return PagedManagers{}, err
+	}
+	return PagedManagers{Items: items, Total: total}, nil
 }
