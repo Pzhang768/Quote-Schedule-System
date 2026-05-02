@@ -69,6 +69,23 @@ go test ./internal/integration/... -timeout 300s
 
 Integration tests spin up an isolated MySQL container per test via `testcontainers-go` — no local DB setup needed. Each container is torn down automatically after the test completes.
 
+## Frontend setup
+
+**1. Install dependencies**
+
+```bash
+cd br-app
+npm install
+```
+
+**2. Run the dev server**
+
+```bash
+npm run dev
+```
+
+The app starts on `http://localhost:3000`.
+
 ## Environment variables
 
 | Variable | Default | Description |
