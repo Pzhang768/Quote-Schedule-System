@@ -8,7 +8,7 @@ import QuoteList from "./_components/QuoteList/QuoteList";
 import TechnicianList from "./_components/TechnicianList/TechnicianList";
 import AssignForm from "./_components/AssignForm/AssignForm";
 
-const today = new Date().toISOString().split("T")[0];
+const today = new Date().toLocaleDateString("en-CA");
 
 interface Selection {
   quote: Quote | null;
