@@ -1,9 +1,15 @@
+// @title           Quote Scheduler API
+// @version         1.0
+// @description     Quote scheduling and notification system
+// @BasePath        /api/v1
+
 package main
 
 import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/melfish/br-api/docs"
 	"github.com/melfish/br-api/internal/db"
 	"github.com/melfish/br-api/internal/logger"
 	"github.com/melfish/br-api/internal/router"
@@ -29,6 +35,8 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	docs.SwaggerInfo.Host = "localhost:" + port
 
 	r := router.New(database)
 	logger.Log.Info("starting server", "port", port)
