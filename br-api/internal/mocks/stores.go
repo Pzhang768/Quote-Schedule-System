@@ -43,8 +43,8 @@ func (m *QuoteStore) List(status models.QuoteStatus, page, pageSize int) ([]mode
 	args := m.Called(status, page, pageSize)
 	return args.Get(0).([]models.Quote), args.Error(1)
 }
-func (m *QuoteStore) UpdateStatus(id uuid.UUID, status models.QuoteStatus) error {
-	return m.Called(id, status).Error(0)
+func (m *QuoteStore) UpdateStatus(tx *gorm.DB, id uuid.UUID, status models.QuoteStatus) error {
+	return m.Called(tx, id, status).Error(0)
 }
 
 type NotificationStore struct{ mock.Mock }

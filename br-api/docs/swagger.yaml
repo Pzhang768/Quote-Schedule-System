@@ -1,9 +1,379 @@
 basePath: /api/v1
-host: localhost:8081
+definitions:
+  handler.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handler.Response-array_models_Quote:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Quote'
+        type: array
+    type: object
+  handler.Response-array_models_Technician:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Technician'
+        type: array
+    type: object
+  handler.Response-array_service_JobSlotResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/service.JobSlotResponse'
+        type: array
+    type: object
+  handler.Response-models_Quote:
+    properties:
+      data:
+        $ref: '#/definitions/models.Quote'
+    type: object
+  handler.Response-service_JobResponse:
+    properties:
+      data:
+        $ref: '#/definitions/service.JobResponse'
+    type: object
+  handler.assignJobRequest:
+    properties:
+      manager_id:
+        type: string
+      quote_id:
+        type: string
+      starts_at:
+        type: string
+      technician_id:
+        type: string
+    required:
+    - manager_id
+    - quote_id
+    - starts_at
+    - technician_id
+    type: object
+  handler.completeJobRequest:
+    properties:
+      technician_id:
+        type: string
+    required:
+    - technician_id
+    type: object
+  models.JobStatus:
+    enum:
+    - scheduled
+    - completed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - JobStatusScheduled
+    - JobStatusCompleted
+    - JobStatusCancelled
+  models.Quote:
+    properties:
+      address:
+        type: string
+      createdAt:
+        type: string
+      customerName:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/models.QuoteStatus'
+      updatedAt:
+        type: string
+    type: object
+  models.QuoteStatus:
+    enum:
+    - unscheduled
+    - scheduled
+    type: string
+    x-enum-varnames:
+    - QuoteStatusUnscheduled
+    - QuoteStatusScheduled
+  models.Technician:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  service.JobResponse:
+    properties:
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      ends_at:
+        type: string
+      id:
+        type: string
+      manager_id:
+        type: string
+      quote_id:
+        type: string
+      starts_at:
+        type: string
+      status:
+        $ref: '#/definitions/models.JobStatus'
+      technician_id:
+        type: string
+    type: object
+  service.JobSlotResponse:
+    properties:
+      ends_at:
+        type: string
+      id:
+        type: string
+      starts_at:
+        type: string
+      status:
+        $ref: '#/definitions/models.JobStatus'
+    type: object
 info:
   contact: {}
   description: Quote scheduling and notification system
   title: Quote Scheduler API
   version: "1.0"
-paths: {}
+paths:
+  /jobs:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Assignment
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.assignJobRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.Response-service_JobResponse'
+        "409":
+          description: Technician has a conflicting job
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Assign a quote to a technician
+      tags:
+      - jobs
+  /jobs/{id}:
+    get:
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-service_JobResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Get a job by ID
+      tags:
+      - jobs
+  /jobs/{id}/complete:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Technician
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.completeJobRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-service_JobResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Mark a job as complete
+      tags:
+      - jobs
+  /notifications/{id}/read:
+    patch:
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Recipient UUID
+        in: query
+        name: recipient_id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Mark a notification as read
+      tags:
+      - notifications
+  /notifications/stream:
+    get:
+      parameters:
+      - description: technician or manager
+        in: query
+        name: recipient_type
+        required: true
+        type: string
+      - description: Recipient UUID
+        in: query
+        name: recipient_id
+        required: true
+        type: string
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Stream notifications via SSE
+      tags:
+      - notifications
+  /quotes:
+    get:
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-array_models_Quote'
+      summary: List unscheduled quotes
+      tags:
+      - quotes
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Quote
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Quote'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.Response-models_Quote'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Create a quote
+      tags:
+      - quotes
+  /technicians:
+    get:
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-array_models_Technician'
+      summary: List technicians
+      tags:
+      - technicians
+  /technicians/{id}/jobs:
+    get:
+      parameters:
+      - description: Technician ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Date (YYYY-MM-DD), defaults to today
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.Response-array_service_JobSlotResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Get a technician's job schedule
+      tags:
+      - technicians
 swagger: "2.0"

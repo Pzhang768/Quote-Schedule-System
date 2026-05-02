@@ -17,6 +17,13 @@ func NewTechnicianHandler(svc *service.TechnicianService) *TechnicianHandler {
 	return &TechnicianHandler{svc: svc}
 }
 
+// @Summary     List technicians
+// @Tags        technicians
+// @Produce     json
+// @Param       page      query  int  false  "Page number"     default(1)
+// @Param       page_size query  int  false  "Items per page"  default(20)
+// @Success     200  {object}  Response[[]models.Technician]
+// @Router      /technicians [get]
 func (h *TechnicianHandler) List(c *gin.Context) {
 	page, pageSize := pagination(c)
 	technicians, err := h.svc.List(page, pageSize)
@@ -27,6 +34,14 @@ func (h *TechnicianHandler) List(c *gin.Context) {
 	Success(c, http.StatusOK, technicians)
 }
 
+// @Summary     Get a technician's job schedule
+// @Tags        technicians
+// @Produce     json
+// @Param       id    path   string  true   "Technician ID"
+// @Param       date  query  string  false  "Date (YYYY-MM-DD), defaults to today"
+// @Success     200  {object}  Response[[]service.JobSlotResponse]
+// @Failure     400  {object}  ErrorResponse
+// @Router      /technicians/{id}/jobs [get]
 func (h *TechnicianHandler) GetSchedule(c *gin.Context) {
 	technicianID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -34,13 +49,21 @@ func (h *TechnicianHandler) GetSchedule(c *gin.Context) {
 		return
 	}
 
-	date := time.Now()
+	tz := c.DefaultQuery("timezone", "Australia/Sydney")
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		Fail(c, http.StatusBadRequest, "invalid timezone")
+		return
+	}
+
+	date := time.Now().In(loc)
 	if d := c.Query("date"); d != "" {
-		date, err = time.Parse("2006-01-02", d)
-		if err != nil {
+		parsed, parseErr := time.ParseInLocation("2006-01-02", d, loc)
+		if parseErr != nil {
 			Fail(c, http.StatusBadRequest, "date must be YYYY-MM-DD")
 			return
 		}
+		date = parsed
 	}
 
 	slots, err := h.svc.GetSchedule(technicianID, date)
@@ -50,3 +73,4 @@ func (h *TechnicianHandler) GetSchedule(c *gin.Context) {
 	}
 	Success(c, http.StatusOK, slots)
 }
+

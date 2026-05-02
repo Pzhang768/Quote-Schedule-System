@@ -19,6 +19,14 @@ func NewNotificationHandler(svc *service.NotificationService) *NotificationHandl
 	return &NotificationHandler{svc: svc}
 }
 
+// @Summary     Stream notifications via SSE
+// @Tags        notifications
+// @Produce     text/event-stream
+// @Param       recipient_type  query  string  true  "technician or manager"
+// @Param       recipient_id    query  string  true  "Recipient UUID"
+// @Success     200
+// @Failure     400  {object}  ErrorResponse
+// @Router      /notifications/stream [get]
 func (h *NotificationHandler) Stream(c *gin.Context) {
 	recipientType := models.RecipientType(c.Query("recipient_type"))
 	if recipientType != models.RecipientTypeTechnician && recipientType != models.RecipientTypeManager {
@@ -62,6 +70,13 @@ func (h *NotificationHandler) Stream(c *gin.Context) {
 	}
 }
 
+// @Summary     Mark a notification as read
+// @Tags        notifications
+// @Param       id            path   string  true  "Notification ID"
+// @Param       recipient_id  query  string  true  "Recipient UUID"
+// @Success     204
+// @Failure     400  {object}  ErrorResponse
+// @Router      /notifications/{id}/read [patch]
 func (h *NotificationHandler) Read(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {

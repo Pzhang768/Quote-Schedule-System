@@ -18,6 +18,14 @@ func NewJobHandler(svc *service.JobService) *JobHandler {
 	return &JobHandler{svc: svc}
 }
 
+// @Summary     Get a job by ID
+// @Tags        jobs
+// @Produce     json
+// @Param       id   path      string  true  "Job ID"
+// @Success     200  {object}  Response[service.JobResponse]
+// @Failure     400  {object}  ErrorResponse
+// @Failure     404  {object}  ErrorResponse
+// @Router      /jobs/{id} [get]
 func (h *JobHandler) Get(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -39,6 +47,15 @@ type assignJobRequest struct {
 	StartsAt     time.Time `json:"starts_at" binding:"required"`
 }
 
+// @Summary     Assign a quote to a technician
+// @Tags        jobs
+// @Accept      json
+// @Produce     json
+// @Param       body  body      assignJobRequest  true  "Assignment"
+// @Success     201   {object}  Response[service.JobResponse]
+// @Failure     409   {object}  ErrorResponse  "Technician has a conflicting job"
+// @Failure     422   {object}  ErrorResponse
+// @Router      /jobs [post]
 func (h *JobHandler) Assign(c *gin.Context) {
 	var body assignJobRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -70,6 +87,16 @@ type completeJobRequest struct {
 	TechnicianID uuid.UUID `json:"technician_id" binding:"required"`
 }
 
+// @Summary     Mark a job as complete
+// @Tags        jobs
+// @Accept      json
+// @Produce     json
+// @Param       id    path      string              true  "Job ID"
+// @Param       body  body      completeJobRequest  true  "Technician"
+// @Success     200   {object}  Response[service.JobResponse]
+// @Failure     403   {object}  ErrorResponse
+// @Failure     422   {object}  ErrorResponse
+// @Router      /jobs/{id}/complete [patch]
 func (h *JobHandler) Complete(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {

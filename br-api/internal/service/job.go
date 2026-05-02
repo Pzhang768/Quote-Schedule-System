@@ -79,7 +79,7 @@ func (svc *JobService) AssignJob(input AssignJobInput) (*JobResponse, error) {
 		return nil, err
 	}
 
-	if err := svc.quotes.UpdateStatus(input.QuoteID, models.QuoteStatusScheduled); err != nil {
+	if err := svc.quotes.UpdateStatus(transaction, input.QuoteID, models.QuoteStatusScheduled); err != nil {
 		transaction.Rollback()
 		return nil, err
 	}

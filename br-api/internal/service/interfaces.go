@@ -20,7 +20,7 @@ type quoteStore interface {
 	Create(q *models.Quote) error
 	List(status models.QuoteStatus, page, pageSize int) ([]models.Quote, error)
 	GetByID(id uuid.UUID) (*models.Quote, error)
-	UpdateStatus(id uuid.UUID, status models.QuoteStatus) error
+	UpdateStatus(tx *gorm.DB, id uuid.UUID, status models.QuoteStatus) error
 }
 
 type notificationStore interface {
