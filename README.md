@@ -71,6 +71,24 @@ npm run dev
 
 The app starts on `http://localhost:3000`.
 
+## How it works
+
+### Data model
+
+There are five tables: `managers`, `technicians`, `quotes`, `jobs`, and `notifications`. A job is the central record, it links a quote, a technician, and a manager together. Quotes start as `unscheduled` and flip to `scheduled` when a job is created. Jobs start as `scheduled` and move to `completed` when the technician marks them done.
+
+### Assignment flow
+
+The manager sees a list of unscheduled quotes and a list of technicians with their existing slots for the day. They pick a quote, click a technician, and choose a 2-hour window. That hits `POST /api/v1/jobs`, which creates the job, updates the quote status, and sends the technician a notification.
+
+### Conflict prevention
+
+The API rejects any assignment that would give a technician overlapping jobs. If the quote was already scheduled by the time the request arrives, that's caught too and returns a 409.
+
+### Notifications
+
+When a job is assigned the technician gets a notification. When it's completed the manager gets one. Notifications are delivered in real time to the sidebar without needing a page refresh.
+
 ## API
 
 Swagger UI: `http://localhost:8080/swagger/index.html`
