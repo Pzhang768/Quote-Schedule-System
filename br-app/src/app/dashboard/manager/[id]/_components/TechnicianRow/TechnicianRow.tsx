@@ -42,6 +42,7 @@ export default function TechnicianRow({
   selectedTime,
 }: Props) {
   const [slots, setSlots] = useState<Job[]>([]);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,42 +57,47 @@ export default function TechnicianRow({
   const available = buildAvailableSlots(date, slots);
 
   return (
-    <div
-      className={`border rounded-xl p-4 cursor-pointer transition-colors ${selected ? "border-ink bg-ink/5" : "border-divider hover:bg-hover"}`}
-      onClick={onClick}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-heading">{technician.Name}</div>
-          <div className="text-caption text-muted">{technician.Email}</div>
-        </div>
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          <div className="text-caption text-muted">
-            {`${slots.length} job${slots.length !== 1 ? "s" : ""} booked`}
+    <article className="relative">
+      <div
+        className={`border rounded-xl p-4 cursor-pointer transition-colors ${selected ? "border-ink bg-ink/5" : "border-divider hover:bg-hover"}`}
+        onClick={() => {
+          onClick();
+          setOpen((o) => !o);
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-heading">{technician.Name}</h3>
+            <p className="text-caption text-muted">{technician.Email}</p>
           </div>
-          <select
-            value={selectedTime}
-            onChange={(e) => onTimeSelect(e.target.value)}
-            className="text-caption border border-divider rounded-lg px-2 py-1 bg-transparent"
-          >
-            <option value="">Pick time</option>
-            {available.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <p className="text-caption text-muted">
+              {`${slots.length} job${slots.length !== 1 ? "s" : ""} booked`}
+            </p>
+            <select
+              value={selectedTime}
+              onChange={(e) => onTimeSelect(e.target.value)}
+              className="text-caption border border-divider rounded-lg px-2 py-1 bg-transparent"
+            >
+              <option value="">Pick time</option>
+              {available.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
-      {slots.length > 0 && (
-        <div className="mt-3 flex flex-col gap-1">
+      {slots.length > 0 && selected && open && (
+        <ul className="absolute left-0 right-0 top-full z-10 mt-1 border border-divider rounded-xl bg-surface shadow-md p-3 flex flex-col gap-1">
           {slots.map((s) => (
-            <div key={s.id} className="flex items-center gap-2">
+            <li key={s.id} className="flex items-center gap-2">
               <div
                 className={`w-2 h-2 rounded-full ${s.status === "completed" ? "bg-ok" : "bg-accent"}`}
               />
-              <div className="text-caption text-muted">
+              <time className="text-caption text-muted">
                 {new Date(s.starts_at).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -105,12 +111,12 @@ export default function TechnicianRow({
                   hour12: false,
                   timeZone: "UTC",
                 })}
-              </div>
-              <div className="text-caption text-muted capitalize">{s.status}</div>
-            </div>
+              </time>
+              <span className="text-caption text-muted capitalize">{s.status}</span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </article>
   );
 }

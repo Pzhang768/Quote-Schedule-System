@@ -36,7 +36,7 @@ describe("notifications api", () => {
   test("streamNotifications: creates EventSource with correct url", () => {
     process.env.NEXT_PUBLIC_API_URL = "http://localhost:8081";
 
-    const eventSource = streamNotifications("technician", "t-1");
+    streamNotifications("technician", "t-1");
 
     expect(global.EventSource).toHaveBeenCalledWith(
       "http://localhost:8081/api/v1/notifications/stream?recipient_type=technician&recipient_id=t-1"

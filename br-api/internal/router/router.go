@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/melfish/br-api/internal/handler"
+	"github.com/melfish/br-api/internal/hub"
 	"github.com/melfish/br-api/internal/logger"
 	"github.com/melfish/br-api/internal/service"
 	"github.com/melfish/br-api/internal/store"
@@ -21,16 +22,18 @@ func New(db *gorm.DB, corsOrigin string) *gin.Engine {
 	notificationStore := store.NewNotificationStore(db)
 	managerStore := store.NewManagerStore(db)
 
+	h := hub.New()
+
 	quoteSvc := service.NewQuoteService(quoteStore)
 	technicianSvc := service.NewTechnicianService(technicianStore, jobStore)
-	jobSvc := service.NewJobService(db, jobStore, quoteStore, notificationStore)
+	jobSvc := service.NewJobService(db, jobStore, quoteStore, notificationStore, h)
 	notificationSvc := service.NewNotificationService(notificationStore)
 	managerSvc := service.NewManagerService(managerStore)
 
 	quotes := handler.NewQuoteHandler(quoteSvc)
 	technicians := handler.NewTechnicianHandler(technicianSvc)
 	jobs := handler.NewJobHandler(jobSvc)
-	notifications := handler.NewNotificationHandler(notificationSvc)
+	notifications := handler.NewNotificationHandler(notificationSvc, h)
 	managers := handler.NewManagerHandler(managerSvc)
 
 	r := gin.New()

@@ -10,25 +10,27 @@ interface NotificationsProps {
 function Notifications({ recipientType, recipientId }: NotificationsProps) {
   const { notifications, markRead } = useNotification(recipientType, recipientId);
   return (
-    <div className="mt-6">
+    <section className="mt-6 flex-1 flex flex-col min-h-0">
       <h2 className="text-heading mb-2">Notifications</h2>
-      {notifications.map((n) => (
-        <div
-          key={n.id}
-          className={`p-2 mb-1 rounded cursor-pointer text-body ${n.read_at ? "opacity-50" : ""}`}
-          onClick={() => markRead(n.id)}
-        >
-          {n.message}
-          <div className="text-caption text-muted">
-            {new Date(n.created_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
+      <ul className="flex-1 overflow-y-auto">
+        {notifications.map((n) => (
+          <li
+            key={n.id}
+            className={`p-2 mb-1 rounded cursor-pointer text-body ${n.read_at ? "opacity-50" : ""}`}
+            onClick={() => markRead(n.id)}
+          >
+            {n.message}
+            <div className="text-caption text-muted">
+              {new Date(n.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -42,7 +44,7 @@ const SideBar = () => {
   const recipientType = role === "manager" || role === "technician" ? role : null;
 
   return (
-    <div className="w-60 flex flex-col p-4 border-r border-ink/20">
+    <aside className="w-60 flex flex-col p-4 border-r border-ink/20 h-screen">
       <button
         className={`w-full text-left p-4 border border-divider rounded-xl mb-2 mt-8 ${role === "manager" ? "bg-ink text-white border-ink!" : "hover:bg-accent-brass/20"}`}
         onClick={() => router.push("/dashboard/manager")}
@@ -70,7 +72,7 @@ const SideBar = () => {
           recipientId={recipientId}
         />
       )}
-    </div>
+    </aside>
   );
 };
 

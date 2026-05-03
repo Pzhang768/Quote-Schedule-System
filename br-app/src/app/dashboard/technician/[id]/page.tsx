@@ -37,12 +37,14 @@ export default function TechnicianDashboard() {
         />
       </div>
 
-      <div className="flex flex-col gap-2">
-        {jobs.length === 0 && <div className="text-body text-muted p-2">No jobs on this day.</div>}
+      <ul className="flex flex-col gap-2">
+        {jobs.length === 0 && <p className="text-body text-muted p-2">No jobs on this day.</p>}
         {jobs.map((job) => (
-          <JobCard key={job.id} job={job} technicianId={technicianId} onCompleted={refetch} />
+          <li key={job.id}>
+            <JobCard job={job} technicianId={technicianId} onCompleted={refetch} />
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

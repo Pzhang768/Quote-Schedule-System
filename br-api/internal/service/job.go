@@ -6,23 +6,30 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/melfish/br-api/internal/logger"
 	"github.com/melfish/br-api/internal/models"
 	"github.com/melfish/br-api/internal/store"
 	"gorm.io/gorm"
 )
 
+type notificationPublisher interface {
+	Publish(n *models.Notification)
+}
+
 type JobService struct {
 	jobs             jobStore
 	quotes           quoteStore
 	notifications    notificationStore
+	publisher        notificationPublisher
 	startTransaction func(opts ...*sql.TxOptions) *gorm.DB
 }
 
-func NewJobService(db *gorm.DB, jobs *store.JobStore, quotes *store.QuoteStore, notifications *store.NotificationStore) *JobService {
+func NewJobService(db *gorm.DB, jobs *store.JobStore, quotes *store.QuoteStore, notifications *store.NotificationStore, publisher notificationPublisher) *JobService {
 	return &JobService{
 		jobs:             jobs,
 		quotes:           quotes,
 		notifications:    notifications,
+		publisher:        publisher,
 		startTransaction: db.Begin,
 	}
 }
@@ -41,19 +48,21 @@ func (svc *JobService) AssignJob(input AssignJobInput) (*JobResponse, error) {
 		return nil, ErrStartsInPast
 	}
 
-	quote, err := svc.quotes.GetByID(input.QuoteID)
-	if err != nil {
-		return nil, err
-	}
-	if quote.Status != models.QuoteStatusUnscheduled {
-		return nil, ErrQuoteNotUnscheduled
-	}
-
 	endTime := input.StartsAt.Add(2 * time.Hour)
 
 	transaction := svc.startTransaction()
 	if transaction.Error != nil {
 		return nil, transaction.Error
+	}
+
+	quote, err := svc.quotes.GetByIDForUpdate(transaction, input.QuoteID)
+	if err != nil {
+		transaction.Rollback()
+		return nil, err
+	}
+	if quote.Status != models.QuoteStatusUnscheduled {
+		transaction.Rollback()
+		return nil, ErrQuoteNotUnscheduled
 	}
 
 	conflicts, err := svc.jobs.ConflictCheck(transaction, input.TechnicianID, input.StartsAt, endTime)
@@ -88,13 +97,17 @@ func (svc *JobService) AssignJob(input AssignJobInput) (*JobResponse, error) {
 		return nil, err
 	}
 
-	_ = svc.notifications.Create(&models.Notification{
+	n := &models.Notification{
 		Type:          models.NotificationTypeJobAssigned,
 		RecipientType: models.RecipientTypeTechnician,
 		RecipientID:   input.TechnicianID,
 		JobID:         job.ID,
 		Message:       fmt.Sprintf("You have been assigned job %s starting at %s", job.ID, job.StartsAt.Format(time.RFC3339)),
-	})
+	}
+	if err := svc.notifications.Create(n); err != nil {
+		logger.Log.Error("failed to create notification", "error", err, "job_id", job.ID)
+	}
+	svc.publisher.Publish(n)
 
 	response := ToJobResponse(job)
 	return &response, nil
@@ -120,13 +133,17 @@ func (svc *JobService) CompleteJob(jobID, technicianID uuid.UUID) (*JobResponse,
 
 	job.Status = models.JobStatusCompleted
 
-	_ = svc.notifications.Create(&models.Notification{
+	m := &models.Notification{
 		Type:          models.NotificationTypeJobCompleted,
 		RecipientType: models.RecipientTypeManager,
 		RecipientID:   job.ManagerID,
 		JobID:         job.ID,
 		Message:       fmt.Sprintf("Job %s has been completed by technician %s", job.ID, job.TechnicianID),
-	})
+	}
+	if err := svc.notifications.Create(m); err != nil {
+		logger.Log.Error("failed to create notification", "error", err, "job_id", job.ID)
+	}
+	svc.publisher.Publish(m)
 
 	response := ToJobResponse(job)
 	return &response, nil

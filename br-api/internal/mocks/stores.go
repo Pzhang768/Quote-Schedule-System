@@ -39,6 +39,10 @@ func (m *QuoteStore) GetByID(id uuid.UUID) (*models.Quote, error) {
 	args := m.Called(id)
 	return args.Get(0).(*models.Quote), args.Error(1)
 }
+func (m *QuoteStore) GetByIDForUpdate(tx *gorm.DB, id uuid.UUID) (*models.Quote, error) {
+	args := m.Called(tx, id)
+	return args.Get(0).(*models.Quote), args.Error(1)
+}
 func (m *QuoteStore) List(status models.QuoteStatus, page, pageSize int) ([]models.Quote, error) {
 	args := m.Called(status, page, pageSize)
 	return args.Get(0).([]models.Quote), args.Error(1)
