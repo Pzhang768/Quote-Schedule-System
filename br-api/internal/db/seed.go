@@ -10,9 +10,9 @@ func Seed(db *gorm.DB) error {
 	db.Model(&models.Manager{}).Count(&managerCount)
 	if managerCount == 0 {
 		managers := []models.Manager{
-			{Name: "Sarah Chen", Email: "sarah.chen@brix.com"},
-			{Name: "James Okafor", Email: "james.okafor@brix.com"},
-			{Name: "Maria Santos", Email: "maria.santos@brix.com"},
+			{Name: "Sarah Chen", Email: "sarah.chen@br.com"},
+			{Name: "James Okafor", Email: "james.okafor@br.com"},
+			{Name: "Maria Santos", Email: "maria.santos@br.com"},
 		}
 		if err := db.Create(&managers).Error; err != nil {
 			return err
@@ -23,11 +23,11 @@ func Seed(db *gorm.DB) error {
 	db.Model(&models.Technician{}).Count(&technicianCount)
 	if technicianCount == 0 {
 		technicians := []models.Technician{
-			{Name: "Tom Brennan", Email: "tom.brennan@brix.com"},
-			{Name: "Lisa Nguyen", Email: "lisa.nguyen@brix.com"},
-			{Name: "Carlos Vega", Email: "carlos.vega@brix.com"},
-			{Name: "Priya Sharma", Email: "priya.sharma@brix.com"},
-			{Name: "Jack Wilson", Email: "jack.wilson@brix.com"},
+			{Name: "Tom Brennan", Email: "tom.brennan@br.com"},
+			{Name: "Lisa Nguyen", Email: "lisa.nguyen@br.com"},
+			{Name: "Carlos Vega", Email: "carlos.vega@br.com"},
+			{Name: "Priya Sharma", Email: "priya.sharma@br.com"},
+			{Name: "Jack Wilson", Email: "jack.wilson@br.com"},
 		}
 		if err := db.Create(&technicians).Error; err != nil {
 			return err
