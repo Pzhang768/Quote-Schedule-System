@@ -112,9 +112,10 @@ describe("TechnicianRow", () => {
       status: "completed",
     };
     getTechnicianJobsMock.mockResolvedValue([job]);
-    render(<TechnicianRow {...baseProps} />);
+    render(<TechnicianRow {...baseProps} selected={true} />);
 
     await waitFor(() => expect(screen.getByText("1 job booked")).toBeInTheDocument());
+    await userEvent.click(screen.getByText("Jane Doe"));
 
     const dot = document.querySelector(".bg-ok");
     expect(dot).toBeInTheDocument();
@@ -123,9 +124,10 @@ describe("TechnicianRow", () => {
   test("renders bg-accent dot for scheduled job", async () => {
     const job = makeJob("j-1", "2026-05-03T07:00:00Z", "2026-05-03T09:00:00Z");
     getTechnicianJobsMock.mockResolvedValue([job]);
-    render(<TechnicianRow {...baseProps} />);
+    render(<TechnicianRow {...baseProps} selected={true} />);
 
     await waitFor(() => expect(screen.getByText("1 job booked")).toBeInTheDocument());
+    await userEvent.click(screen.getByText("Jane Doe"));
 
     const dot = document.querySelector(".bg-accent");
     expect(dot).toBeInTheDocument();

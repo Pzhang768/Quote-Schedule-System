@@ -34,9 +34,9 @@ export default function TechnicianList({
   onNext,
 }: Props) {
   return (
-    <div className="flex-5 flex flex-col gap-2">
+    <section className="flex-5 flex flex-col gap-2">
       <div className="flex items-center gap-3 px-1">
-        <div className="text-caption-upper text-muted">Technicians</div>
+        <h2 className="text-caption-upper text-muted">Technicians</h2>
         <input
           type="date"
           value={date}
@@ -59,6 +59,6 @@ export default function TechnicianList({
           />
         ))}
       <Pagination page={page} totalPages={totalPages} onPrev={onPrev} onNext={onNext} />
-    </div>
+    </section>
   );
 }

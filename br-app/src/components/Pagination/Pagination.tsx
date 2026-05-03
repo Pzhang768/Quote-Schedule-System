@@ -8,7 +8,7 @@ interface Props {
 export default function Pagination({ page, totalPages, onPrev, onNext }: Props) {
   if (totalPages <= 1) return null;
   return (
-    <div className="flex items-center gap-3 px-1 pt-1">
+    <nav className="flex items-center gap-3 px-1 pt-1" aria-label="Pagination">
       <button
         onClick={onPrev}
         disabled={page <= 1}
@@ -26,6 +26,6 @@ export default function Pagination({ page, totalPages, onPrev, onNext }: Props) 
       >
         Next
       </button>
-    </div>
+    </nav>
   );
 }

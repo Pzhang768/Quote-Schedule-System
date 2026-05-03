@@ -39,15 +39,15 @@ export default function JobCard({ job, technicianId, onCompleted }: Props) {
   });
 
   return (
-    <div className="border border-divider rounded-xl p-4 flex items-center justify-between gap-4 bg-accent-brass/10">
+    <article className="border border-divider rounded-xl p-4 flex items-center justify-between gap-4 bg-accent-brass/10">
       <div className="flex flex-col gap-1">
-        <div className="text-heading">
+        <time className="text-heading">
           {start} – {end}
-        </div>
-        {job.customer_name && <div className="text-body">{job.customer_name}</div>}
-        {job.address && <div className="text-caption text-muted">{job.address}</div>}
-        <div className="text-caption text-muted capitalize">{job.status}</div>
-        {error && <div className="text-caption text-accent">{error}</div>}
+        </time>
+        {job.customer_name && <p className="text-body">{job.customer_name}</p>}
+        {job.address && <p className="text-caption text-muted">{job.address}</p>}
+        <p className="text-caption text-muted capitalize">{job.status}</p>
+        {error && <p className="text-caption text-accent">{error}</p>}
       </div>
 
       {job.status === "scheduled" && (
@@ -60,7 +60,7 @@ export default function JobCard({ job, technicianId, onCompleted }: Props) {
         </button>
       )}
 
-      {job.status === "completed" && <div className="text-caption text-ok font-medium">Done</div>}
-    </div>
+      {job.status === "completed" && <span className="text-caption text-ok font-medium">Done</span>}
+    </article>
   );
 }

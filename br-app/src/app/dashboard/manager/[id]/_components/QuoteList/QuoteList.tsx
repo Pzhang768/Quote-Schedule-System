@@ -22,8 +22,8 @@ export default function QuoteList({
   onNext,
 }: Props) {
   return (
-    <div className="flex-2 flex flex-col gap-2">
-      <div className="text-caption-upper text-muted px-1">Unscheduled Quotes</div>
+    <section className="flex-2 flex flex-col gap-2">
+      <h2 className="text-caption-upper text-muted px-1">Unscheduled Quotes</h2>
       {quotes.length === 0 && (
         <div className="text-body text-muted p-2">No unscheduled quotes.</div>
       )}
@@ -36,6 +36,6 @@ export default function QuoteList({
         />
       ))}
       <Pagination page={page} totalPages={totalPages} onPrev={onPrev} onNext={onNext} />
-    </div>
+    </section>
   );
 }
