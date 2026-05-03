@@ -8,6 +8,7 @@ import (
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
+	"github.com/melfish/br-api/internal/hub"
 	"github.com/melfish/br-api/internal/mocks"
 	"github.com/melfish/br-api/internal/models"
 	"github.com/stretchr/testify/assert"
@@ -44,7 +45,7 @@ func setupJobTest(t *testing.T, startTransaction func(...*sql.TxOptions) *gorm.D
 	jobs := &mocks.JobStore{}
 	quotes := &mocks.QuoteStore{}
 	notifs := &mocks.NotificationStore{}
-	svc := &JobService{jobs: jobs, quotes: quotes, notifications: notifs, startTransaction: startTransaction}
+	svc := &JobService{jobs: jobs, quotes: quotes, notifications: notifs, publisher: hub.New(), startTransaction: startTransaction}
 	return &jobTestEnv{svc: svc, jobs: jobs, quotes: quotes, notifs: notifs}
 }
 
@@ -61,7 +62,7 @@ func TestAssignJob(t *testing.T) {
 		mock.ExpectCommit()
 		env := setupJobTest(t, db.Begin)
 
-		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
+		env.quotes.On("GetByIDForUpdate", tmock.AnythingOfType("*gorm.DB"), quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
 		env.jobs.On("ConflictCheck", tmock.AnythingOfType("*gorm.DB"), techID, startsAt, startsAt.Add(2*time.Hour)).Return([]models.Job{}, nil)
 		env.jobs.On("Create", tmock.AnythingOfType("*gorm.DB"), tmock.AnythingOfType("*models.Job")).Return(nil)
 		env.quotes.On("UpdateStatus", tmock.AnythingOfType("*gorm.DB"), quoteID, models.QuoteStatusScheduled).Return(nil)
@@ -79,8 +80,11 @@ func TestAssignJob(t *testing.T) {
 	})
 
 	t.Run("rejects when quote is already scheduled", func(t *testing.T) {
-		env := setupJobTest(t, noTx)
-		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusScheduled}, nil)
+		db, mock := stubDB(t)
+		mock.ExpectBegin()
+		mock.ExpectRollback()
+		env := setupJobTest(t, db.Begin)
+		env.quotes.On("GetByIDForUpdate", tmock.AnythingOfType("*gorm.DB"), quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusScheduled}, nil)
 
 		_, err := env.svc.AssignJob(validInput)
 		assert.ErrorIs(t, err, ErrQuoteNotUnscheduled)
@@ -92,7 +96,7 @@ func TestAssignJob(t *testing.T) {
 		mock.ExpectRollback()
 		env := setupJobTest(t, db.Begin)
 
-		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
+		env.quotes.On("GetByIDForUpdate", tmock.AnythingOfType("*gorm.DB"), quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
 		env.jobs.On("ConflictCheck", tmock.AnythingOfType("*gorm.DB"), techID, startsAt, startsAt.Add(2*time.Hour)).
 			Return([]models.Job{{ID: uuid.New()}}, nil)
 
@@ -101,8 +105,11 @@ func TestAssignJob(t *testing.T) {
 	})
 
 	t.Run("returns error when quote lookup fails", func(t *testing.T) {
-		env := setupJobTest(t, noTx)
-		env.quotes.On("GetByID", quoteID).Return((*models.Quote)(nil), errors.New("db error"))
+		db, mock := stubDB(t)
+		mock.ExpectBegin()
+		mock.ExpectRollback()
+		env := setupJobTest(t, db.Begin)
+		env.quotes.On("GetByIDForUpdate", tmock.AnythingOfType("*gorm.DB"), quoteID).Return((*models.Quote)(nil), errors.New("db error"))
 
 		_, err := env.svc.AssignJob(validInput)
 		assert.ErrorContains(t, err, "db error")
@@ -114,7 +121,7 @@ func TestAssignJob(t *testing.T) {
 		mock.ExpectRollback()
 		env := setupJobTest(t, db.Begin)
 
-		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
+		env.quotes.On("GetByIDForUpdate", tmock.AnythingOfType("*gorm.DB"), quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
 		env.jobs.On("ConflictCheck", tmock.AnythingOfType("*gorm.DB"), techID, startsAt, startsAt.Add(2*time.Hour)).
 			Return([]models.Job{}, errors.New("db error"))
 
@@ -128,7 +135,7 @@ func TestAssignJob(t *testing.T) {
 		mock.ExpectRollback()
 		env := setupJobTest(t, db.Begin)
 
-		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
+		env.quotes.On("GetByIDForUpdate", tmock.AnythingOfType("*gorm.DB"), quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
 		env.jobs.On("ConflictCheck", tmock.AnythingOfType("*gorm.DB"), techID, startsAt, startsAt.Add(2*time.Hour)).Return([]models.Job{}, nil)
 		env.jobs.On("Create", tmock.AnythingOfType("*gorm.DB"), tmock.AnythingOfType("*models.Job")).Return(errors.New("db error"))
 
@@ -142,7 +149,7 @@ func TestAssignJob(t *testing.T) {
 		mock.ExpectRollback()
 		env := setupJobTest(t, db.Begin)
 
-		env.quotes.On("GetByID", quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
+		env.quotes.On("GetByIDForUpdate", tmock.AnythingOfType("*gorm.DB"), quoteID).Return(&models.Quote{ID: quoteID, Status: models.QuoteStatusUnscheduled}, nil)
 		env.jobs.On("ConflictCheck", tmock.AnythingOfType("*gorm.DB"), techID, startsAt, startsAt.Add(2*time.Hour)).Return([]models.Job{}, nil)
 		env.jobs.On("Create", tmock.AnythingOfType("*gorm.DB"), tmock.AnythingOfType("*models.Job")).Return(nil)
 		env.quotes.On("UpdateStatus", tmock.AnythingOfType("*gorm.DB"), quoteID, models.QuoteStatusScheduled).Return(errors.New("db error"))

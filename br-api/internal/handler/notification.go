@@ -1,22 +1,26 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/melfish/br-api/internal/hub"
 	"github.com/melfish/br-api/internal/models"
 	"github.com/melfish/br-api/internal/service"
 )
 
+
 type NotificationHandler struct {
 	svc *service.NotificationService
+	hub *hub.Hub
 }
 
-func NewNotificationHandler(svc *service.NotificationService) *NotificationHandler {
-	return &NotificationHandler{svc: svc}
+func NewNotificationHandler(svc *service.NotificationService, h *hub.Hub) *NotificationHandler {
+	return &NotificationHandler{svc: svc, hub: h}
 }
 
 // @Summary     Stream notifications via SSE
@@ -45,27 +49,17 @@ func (h *NotificationHandler) Stream(c *gin.Context) {
 	c.Header("Connection", "keep-alive")
 	c.Header("X-Accel-Buffering", "no")
 
-	since := time.Now()
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
+	ch := h.hub.Subscribe(recipientType, recipientID)
+	defer h.hub.Unsubscribe(recipientType, recipientID, ch)
 
 	for {
 		select {
 		case <-c.Request.Context().Done():
 			return
-		case t := <-ticker.C:
-			notifications, err := h.svc.ListSince(recipientType, recipientID, since)
-			if err != nil {
-				fmt.Fprintf(c.Writer, "event: error\ndata: %s\n\n", err.Error())
-				c.Writer.Flush()
-				return
-			}
-			since = t
-			for _, n := range notifications {
-				fmt.Fprintf(c.Writer, "data: {\"id\":%q,\"message\":%q,\"type\":%q,\"created_at\":%q}\n\n",
-					n.ID, n.Message, n.Type, n.CreatedAt.Format(time.RFC3339))
-				c.Writer.Flush()
-			}
+		case n := <-ch:
+			fmt.Fprintf(c.Writer, "data: {\"id\":%q,\"message\":%q,\"type\":%q,\"created_at\":%q}\n\n",
+				n.ID, n.Message, n.Type, n.CreatedAt.Format(time.RFC3339))
+			c.Writer.Flush()
 		}
 	}
 }
@@ -120,7 +114,11 @@ func (h *NotificationHandler) Read(c *gin.Context) {
 	}
 
 	if err := h.svc.Read(id, recipientID); err != nil {
-		Fail(c, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, service.ErrNotificationNotFound) {
+			Fail(c, http.StatusNotFound, err.Error())
+		} else {
+			Fail(c, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 	c.Status(http.StatusNoContent)

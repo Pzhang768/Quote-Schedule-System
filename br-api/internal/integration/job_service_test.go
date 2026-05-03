@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/melfish/br-api/internal/hub"
 	"github.com/melfish/br-api/internal/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,7 @@ func TestAssignJob_Integration(t *testing.T) {
 	tech, mgr := seedTechnicianAndManager(t, env)
 	quote := seedQuote(t, env)
 
-	svc := service.NewJobService(env.db, env.jobs, env.quotes, env.notifications)
+	svc := service.NewJobService(env.db, env.jobs, env.quotes, env.notifications, hub.New())
 	startsAt := time.Now().Add(24 * time.Hour).Truncate(time.Second)
 
 	resp, err := svc.AssignJob(service.AssignJobInput{
@@ -46,7 +47,7 @@ func TestAssignJob_Conflict_Integration(t *testing.T) {
 	quote1 := seedQuote(t, env)
 	quote2 := seedQuote(t, env)
 
-	svc := service.NewJobService(env.db, env.jobs, env.quotes, env.notifications)
+	svc := service.NewJobService(env.db, env.jobs, env.quotes, env.notifications, hub.New())
 	startsAt := time.Now().Add(24 * time.Hour).Truncate(time.Second)
 
 	_, err := svc.AssignJob(service.AssignJobInput{
@@ -74,7 +75,7 @@ func TestAssignJob_ConcurrentConflict_Integration(t *testing.T) {
 	quote1 := seedQuote(t, env)
 	quote2 := seedQuote(t, env)
 
-	svc := service.NewJobService(env.db, env.jobs, env.quotes, env.notifications)
+	svc := service.NewJobService(env.db, env.jobs, env.quotes, env.notifications, hub.New())
 	startsAt := time.Now().Add(24 * time.Hour).Truncate(time.Second)
 
 	var wg sync.WaitGroup
@@ -110,7 +111,7 @@ func TestCompleteJob_Integration(t *testing.T) {
 	tech, mgr := seedTechnicianAndManager(t, env)
 	quote := seedQuote(t, env)
 
-	svc := service.NewJobService(env.db, env.jobs, env.quotes, env.notifications)
+	svc := service.NewJobService(env.db, env.jobs, env.quotes, env.notifications, hub.New())
 	startsAt := time.Now().Add(24 * time.Hour).Truncate(time.Second)
 
 	assigned, err := svc.AssignJob(service.AssignJobInput{

@@ -21,6 +21,7 @@ type quoteStore interface {
 	List(status models.QuoteStatus, page, pageSize int) ([]models.Quote, error)
 	Count(status models.QuoteStatus) (int, error)
 	GetByID(id uuid.UUID) (*models.Quote, error)
+	GetByIDForUpdate(tx *gorm.DB, id uuid.UUID) (*models.Quote, error)
 	UpdateStatus(tx *gorm.DB, id uuid.UUID, status models.QuoteStatus) error
 }
 

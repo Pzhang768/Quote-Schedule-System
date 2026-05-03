@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -61,7 +62,11 @@ func (h *TechnicianHandler) GetSchedule(c *gin.Context) {
 
 	slots, err := h.svc.GetSchedule(technicianID, date)
 	if err != nil {
-		Fail(c, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, service.ErrTechnicianNotFound) {
+			Fail(c, http.StatusNotFound, err.Error())
+		} else {
+			Fail(c, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 	Success(c, http.StatusOK, slots)

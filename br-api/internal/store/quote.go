@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/melfish/br-api/internal/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type QuoteStore struct {
@@ -22,6 +23,12 @@ func (s *QuoteStore) Create(q *models.Quote) error {
 func (s *QuoteStore) GetByID(id uuid.UUID) (*models.Quote, error) {
 	var q models.Quote
 	result := s.db.First(&q, "id = ?", id)
+	return &q, result.Error
+}
+
+func (s *QuoteStore) GetByIDForUpdate(tx *gorm.DB, id uuid.UUID) (*models.Quote, error) {
+	var q models.Quote
+	result := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&q, "id = ?", id)
 	return &q, result.Error
 }
 
