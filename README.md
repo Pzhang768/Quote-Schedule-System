@@ -201,3 +201,11 @@ GORM handles migrations, seeding, and standard queries without writing repetitiv
 Integration tests set up a real MySQL container per test using `testcontainers-go`. Tests run against the actual DB engine rather than a mock, so things like transactions, locking behaviour, and constraint violations are tested as they would be in production.
 
 **Trade-off:** Requires Docker and is slower than unit tests. For that reason, integration tests are not run in the Husky pre-commit script — unit tests run on every commit, integration tests are run manually. In the future they could be wired into a CI pipeline.
+
+## Use of AI tools
+
+Claude was used throughout this project as a pair programming assistant. I configured a claude.md and a custom skill upfront so Claude could stay aligned with my engineering preferences, including code review style, naming conventions, commit format, and how I structure technical decisions. This reduced the need to repeatedly explain project context and made the feedback feel closer to working with a teammate.
+
+I also used Claude Design early in the project to explore the typography scale and colour/theme direction before writing the Tailwind config. Having a visual reference helped me settle on a simple four-size type scale and the brass accent palette more quickly.
+
+The final architecture and implementation decisions were still my own. Claude was mainly used to compare trade-offs, review code, sanity-check the locking strategy, debug issues such as the deadlock around quote scheduling, and help refine the README.
