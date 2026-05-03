@@ -75,7 +75,7 @@ The app starts on `http://localhost:3000`.
 
 ### Data model
 
-There are five tables: `managers`, `technicians`, `quotes`, `jobs`, and `notifications`. A job is the central record, it links a quote, a technician, and a manager together. Quotes start as `unscheduled` and flip to `scheduled` when a job is created. Jobs start as `scheduled` and move to `completed` when the technician marks them done.
+A `job` is the central record. It holds a foreign key to `quote`, `technician`, and `manager`. `quote_id` is unique on the jobs table, so a quote can only ever be assigned once. A `notification` belongs to a job and targets a recipient via `recipient_type` + `recipient_id` rather than separate FK columns. Using a polymorphic reference keeps the table flat and avoids adding a new nullable FK every time a new recipient type is introduced.
 
 ### Assignment flow
 
